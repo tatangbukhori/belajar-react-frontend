@@ -19,7 +19,7 @@ export const showPost = async (id, data) => {
 };
 
 export const updatePost = async (id, data) => {
-    const response = await axios.put(`${API_BASE_URL}/api/posts/update/${id}`, data);
+    const response = await axios.patch(`${API_BASE_URL}/api/posts/update/${id}`, data);
     return response.data.data;
 };
 

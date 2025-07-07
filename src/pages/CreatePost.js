@@ -11,7 +11,7 @@ function CreatePost() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errorMessages, setErrorMessages] = useState([]);
   const [success, setSuccess] = useState(false);
 
   const navigate = useNavigate();
@@ -25,16 +25,21 @@ function CreatePost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setErrorMessages([]);
 
     try {
       // call API
       await createPost(formData);
       setSuccess(true);
-      setTimeout(() => navigate("/"), 1200);
+      setTimeout(() => navigate("/"), 1000);
     } catch (err) {
-      const message = err.response?.data?.message || err.message || "There is an error";
-      setError(message);
+      const errors = err.response?.data?.errors;
+      if (Array.isArray(errors)) {
+        setErrorMessages(errors.map((e) => e.msg));
+      } else {
+        const message = err.response?.data?.message || err.message || "There is an error";
+        setErrorMessages([message]);
+      }
     } finally {
       setLoading(false);
     }
@@ -48,8 +53,14 @@ function CreatePost() {
           <h2 className="text-center mb-4">Create Post</h2>
 
           {/* Alert */}
-          {error && (
-            <Alert variant="danger" dismissible onClose={() => setError("")}> {error} </Alert>
+          {errorMessages.length > 0 && (
+            <Alert variant="danger" dismissible onClose={() => setErrorMessages([])}>
+              <ul className="mb-0">
+                {errorMessages.map((msg, idx) => (
+                  <li key={idx}>{msg}</li>
+                ))}
+              </ul>
+            </Alert>
           )}
 
           {success && (
@@ -62,15 +73,19 @@ function CreatePost() {
             {/* Title */}
             <Form.Group className="mb-3" controlId="title">
               <Form.Label>Title</Form.Label>
-              <Form.Control type="text" name="title" placeholder="Insert title in here" value={formData.title} onChange={handleChange} required></Form.Control>
-              <Form.Control.Feedback type="invalid">Title is required</Form.Control.Feedback>
+              <Form.Control type="text" name="title" placeholder="Insert title in here" value={formData.title} onChange={handleChange} required/>
+              <Form.Control.Feedback type="invalid">
+                Title is required
+              </Form.Control.Feedback>
             </Form.Group>
 
             {/* Content */}
             <Form.Group className="mb-4" controlId="content">
               <Form.Label>Content</Form.Label>
               <Form.Control as="textarea" rows={4} name="content" placeholder="Insert content in here" value={formData.content} onChange={handleChange} required></Form.Control>
-              <Form.Control.Feedback type="invalid">Content is required</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">
+                Content is required
+              </Form.Control.Feedback>
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100" disabled={loading}>
